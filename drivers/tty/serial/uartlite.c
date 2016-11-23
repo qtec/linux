@@ -447,14 +447,19 @@ static void ulite_console_write(struct console *co, const char *s,
 				unsigned int count)
 {
 	struct uart_port *port = &ulite_ports[co->index];
-	unsigned long flags;
 	unsigned int ier;
-	int locked = 1;
 
-	if (oops_in_progress) {
+	//TODO
+	//Check if all the  function can be simplified to just do the
+	//uart_console_write (like altera_uart.c)
+
+	/*unsigned long flags;
+	int locked = 1;*/ //Do not disable irq
+
+	/*if (oops_in_progress) {
 		locked = spin_trylock_irqsave(&port->lock, flags);
 	} else
-		spin_lock_irqsave(&port->lock, flags);
+		spin_lock_irqsave(&port->lock, flags);*/
 
 	/* save and disable interrupt */
 	ier = uart_in32(ULITE_STATUS, port) & ULITE_STATUS_IE;
@@ -468,8 +473,8 @@ static void ulite_console_write(struct console *co, const char *s,
 	if (ier)
 		uart_out32(ULITE_CONTROL_IE, ULITE_CONTROL, port);
 
-	if (locked)
-		spin_unlock_irqrestore(&port->lock, flags);
+	/*if (locked)
+		spin_unlock_irqrestore(&port->lock, flags);*/
 }
 
 static int ulite_console_setup(struct console *co, char *options)

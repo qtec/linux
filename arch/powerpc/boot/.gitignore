@@ -17,6 +17,8 @@ uImage
 cuImage.*
 dtbImage.*
 *.dtb
+ramdisk.image
+simpleImage.*
 treeImage.*
 zImage
 zImage.initrd

@@ -1,0 +1,38 @@
+/dts-v1/;
+
+/include/ "qt5023-cmosis.dtsi"
+
+&cmosis_fg_0 {
+	interrupt-parent = <&xps_intc_0>;
+	interrupts = < 4 2 >;
+	qtec,pixel_clk = < 25000000 >;
+};
+
+&packer_0 {
+	qtec,dma = <&dma_0>;
+	qtec,dma_desc_mem= <&dma_desc_mem>;
+};
+
+&uart_0 {
+	interrupts = < 8 2 >;
+};
+
+&axi1 {
+	dma_0: dma_0{
+	#address-cells = <1>;
+	#size-cells = <1>;
+	       compatible = "xlnx,axi_dma-6.02.a";
+	       reg = < 0x30090030 0x20 >;
+	       interrupt-parent = <&xps_intc_0>;
+	       interrupts = < 6 2 >;
+	};
+
+	dma_desc_mem: dma_desc_mem {
+	#address-cells = <1>;
+	#size-cells = <1>;
+	      compatible = "qtec,memory-pool-1.00a";
+	      reg = < 0x38004000 0x4000 >;
+	      reg-axi = < 0x38004000 0x4000 >;
+	};
+
+};

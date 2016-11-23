@@ -1,0 +1,248 @@
+/dts-v1/;
+
+/include/ "qt5023.dtsi"
+
+&axi1 {
+		sensor: sensor {
+			q5,nccd=<3>;
+			q5,inverted=<0>;
+			q5,bayer=<0>;
+			q5,hitachi_ccd = <0>;
+			q5,clock_and_data = <0>;
+		};
+
+		xps_spi_1: spi-ad {
+			#address-cells = <1>;
+			#size-cells = <1>;
+			compatible = "xlnx,xps-spi-2.00.b";
+			reg = < 0x300a0000 0x10000 >;
+			interrupt-parent = <&xps_intc_0>;
+			interrupts = < 4 2 >;
+			xlnx,fifo-exist = <0x1>;
+			num-cs = <33>;
+			xlnx,num-transfer-bits = <0x8>;
+			xlnx,sck-ratio = <0x20>;
+
+			ad_red:ad_red {
+				compatible = "qtec,ad";
+				reg = < 0 0>;
+				spi-max-frequency = <3125000>;
+				spi-cpha;
+				spi-cpol;
+				spi-lsb-first;
+				spi-loop;
+			} ;
+			ad_green:ad_green {
+				compatible = "qtec,ad";
+				reg = < 1 1>;
+				spi-max-frequency = <3125000>;
+				spi-cpha;
+				spi-cpol;
+				spi-lsb-first;
+				spi-loop;
+			} ;
+			ad_blue:ad_blue {
+				compatible = "qtec,ad";
+				reg = < 2 2>;
+				spi-max-frequency = <3125000>;
+				spi-cpha;
+				spi-cpol;
+				spi-lsb-first;
+				spi-loop;
+			} ;
+			ad_ir1:ad_ir1 {
+				compatible = "qtec,ad";
+				reg = < 3 3>;
+				spi-max-frequency = <3125000>;
+				spi-cpha;
+				spi-cpol;
+				spi-lsb-first;
+				spi-loop;
+			} ;
+			ad_ir2:ad_ir2 {
+				compatible = "qtec,ad";
+				reg = < 4 4>;
+				spi-max-frequency = <3125000>;
+				spi-cpha;
+				spi-cpol;
+				spi-lsb-first;
+				spi-loop;
+			} ;
+			ad_all:ad_all {
+				compatible = "qtec,ad";
+				reg = < 32 32>;
+				spi-cpha;
+				spi-cpol;
+				spi-lsb-first;
+				spi-loop;
+				spi-max-frequency = <3125000>;
+			} ;
+		} ;
+		qtec_trigger_0: qtec_trigger_0 {
+			#address-cells = <1>;
+			#size-cells = <1>;
+			reg = < 0x30090000 0x1000 >;
+		     	compatible = "qtec,axi-trigger-unit-1.00.a";
+	     	};
+		qtec_timegen_0:qtec_timegen_0 {
+			address-cells = <1>;
+			#size-cells = <1>;
+		     	compatible = "qtec,axi-ccd-timing-gen-1.00.a";
+			reg = < 0x300f0000 0x10000 >;
+		};
+		qtec_bayer_0:qtec_bayer_0 {
+			#address-cells = <1>;
+			#size-cells = <1>;
+		     	compatible = "qtec,axi-fb-bayer-interpol-1.00.a";
+			reg = < 0x300d0000 0x10000 >;
+		};
+		pll_0: pll_0 {
+			#address-cells = <1>;
+			#size-cells = <1>;
+		    	compatible = "qtec,axi_pll-1.00.a";
+			reg = < 0x300b0000 0x1000 >;
+	    	};
+		ccd_fg_0: ccd_fg_0 {
+			#address-cells = <1>;
+			#size-cells = <1>;
+		       	compatible = "qtec,axi-framebus-gen-1.00.a";
+			reg = < 0x300c0000 0x10000 >;
+			interrupt-parent = <&xps_intc_0>;
+			interrupts = < 6 2 >;
+			qtec,manual_sync=<1>;
+			qtec,bayer_chip=<1>;
+			qtec,n_ccd=<1>;
+			qtec,pixel_clk=<32500000>;
+			qtec,bus_clk=<85714285>;
+			/*Subdevices*/
+			qtec,ad_red = <&ad_red>;
+			qtec,ad_green = <&ad_green>;
+			qtec,ad_blue = <&ad_blue>;
+			qtec,ad_ir1 = <&ad_ir1>;
+			qtec,ad_ir2 = <&ad_ir2>;
+			qtec,ad_all = <&ad_all>;
+			qtec,trigger = <&qtec_trigger_0 >;
+			qtec,timegen = <&qtec_timegen_0 >;
+			qtec,bayer = <&qtec_bayer_0 >;
+	        };
+		white_0: white_0 {
+			#address-cells = <1>;
+			#size-cells = <1>;
+		    	compatible = "qtec,axi_white_balance-1.00.a";
+			reg = < 0x300e0000 0x1000 >;
+	    	};
+		xform_0: xform_0 {
+			#address-cells = <1>;
+			#size-cells = <1>;
+			compatible = "qtec,axi_fb_img_xform-1.03.a";
+			reg = < 0x32000000 0x10000 >;
+			qtec,dist_mem = <&distortion_mem>;
+			qtec,buffer_size_pixels=< 94208 >;
+			interrupt-parent = <&xps_intc_0>;
+			interrupts = < 8 2 >;
+		};
+		cdma_0: cdma_0{
+			#address-cells = <1>;
+			#size-cells = <1>;
+		     	compatible = "xlnx,axi_cdma-3.04.a";
+			reg = < 0x30050000 0x10000 >;
+			interrupt-parent = <&xps_intc_0>;
+			interrupts = < 3 2 >;
+		};
+		testgen_0: testgen_0{
+			#address-cells = <1>;
+			#size-cells = <1>;
+		     	compatible = "qtec,axi_fb_testgen-1.00.a";
+			reg = < 0x30070000 0x10000 >;
+			qtec,test_mem = <&testgen_mem>;
+			interrupt-parent = <&xps_intc_0>;
+			interrupts = < 7 2 >;
+		};
+		encoder_0: encoder_0 {
+			#address-cells = <1>;
+			#size-cells = <1>;
+			reg = < 0x30091000 0x1000 >;
+			compatible = "qtec,axi-trigger-unit-1.00.a";
+			qtec,clk = <85714285>;
+		};
+		packer_0: packer_0{
+			#address-cells = <1>;
+			#size-cells = <1>;
+		     	compatible = "qtec,axi_matrix_packer-1.00.a";
+			reg = < 0x30060000 0x10000 >;
+			qtec,serial_number = "Invalid Head Serial Number";
+			qtec,bitstream_version = < 0 >;
+			qtec,head_i2c_address = < 0 >;
+			qtec,cdma = <&cdma_0>;
+			qtec,desc_mem= <&cdma_desc_mem>;
+			qtec,pcie_bridge= <&pcie_bridge_0>;
+			qtec,aperture-addr= < 0  4 >;
+			qtec,circular_buffer= <&video_mem>;
+			qtec,white_balance= <&white_0>;
+			qtec,sensor = <&ccd_fg_0>;
+			qtec,pll = < &pll_0 >;
+			qtec,xform = <&xform_0>;
+			qtec,testgen = <&testgen_0>;
+			qtec,encoder = <&encoder_0>;
+			interrupt-parent = <&xps_intc_0>;
+			interrupts = < 5 2 >;
+		};
+
+		/*Leds*/
+		leds {
+			reg = < 0x30040000 010000 >;
+			compatible = "gpio-leds";
+			red {
+				gpios = <&gpio_0 0 0>;
+				linux,default-trigger = "drop-qt5023_video0";
+			};
+			yellow {
+				gpios = <&gpio_0 1 0>;
+				linux,default-trigger = "packer-qt5023_video0";
+			};
+			green {
+				gpios = <&gpio_0 2 0>;
+				linux,default-trigger = "heartbeat";
+			};
+		};
+
+		gpio_0: gpio_0 {
+			#gpio-cells = <2>;
+			compatible = "xlnx,xps-gpio-1.00.a";
+			reg = < 0x30040000 010000 >;
+			xlnx,dout-default = < 0xffffffff >;
+			xlnx,tri-default =  < 0xfffffff8 >;
+			xlnx,gpio-width = < 5 >;
+		};
+
+		/*Memory resources*/
+		cdma_desc_mem: cdma_desc_mem {
+			#address-cells = <1>;
+			#size-cells = <1>;
+		     	compatible = "qtec,memory-pool-1.00a";
+			reg = < 0x38000000 0x4000 >;
+			reg-axi = < 0x38000000 0x4000 >;
+		};
+		video_mem: video_mem {
+			#address-cells = <1>;
+			#size-cells = <1>;
+		     	compatible = "qtec,memory-pool-1.00a";
+			reg = < 0x10000000 0x4000000 >;
+			reg-axi = < 0x10000000 0x4000000>; //Duplicated
+		};
+		distortion_mem: distortion_mem {
+			#address-cells = <1>;
+			#size-cells = <1>;
+		     	compatible = "qtec,memory-pool-1.00a";
+			reg = < 0x14000000 0x2000000 >;
+			reg-axi = < 0x14000000 0x2000000 >;
+		};
+		testgen_mem: testgen_mem {
+			#address-cells = <1>;
+			#size-cells = <1>;
+		     	compatible = "qtec,memory-pool-1.00a";
+			reg = < 0x16000000 0x2000000 >;
+			reg-axi = < 0x16000000 0x2000000 >;
+		};
+
+	};

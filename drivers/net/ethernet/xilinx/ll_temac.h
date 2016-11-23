@@ -56,6 +56,7 @@ This option defaults to enabled (set) */
 #define XTE_OPTION_DEFAULTS                     \
 	(XTE_OPTION_TXEN |                          \
 	 XTE_OPTION_FLOW_CONTROL |                  \
+	 XTE_OPTION_JUMBO |                  \
 	 XTE_OPTION_RXEN)
 
 /* XPS_LL_TEMAC SDMA registers definition */
@@ -352,7 +353,7 @@ struct temac_local {
 
 	struct sk_buff **rx_skb;
 	spinlock_t rx_lock;
-	struct mutex indirect_mutex;
+	struct mutex *indirect_mutex;
 	u32 options;			/* Current options word */
 	int last_link;
 	unsigned int temac_features;

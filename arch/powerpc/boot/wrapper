@@ -169,7 +169,7 @@ objflags=-S
 tmp=$tmpdir/zImage.$$.o
 ksection=.kernel:vmlinux.strip
 isection=.kernel:initrd
-link_address='0x400000'
+link_address='0x800000'
 make_space=y
 
 case "$platform" in
@@ -362,6 +362,8 @@ membase=`${CROSS}objdump -p "$kernel" | grep -m 1 LOAD | awk '{print $7}'`
 case "$platform" in
 uboot)
     rm -f "$ofile"
+    echo ${MKIMAGE} -A ppc -O linux -T kernel -C gzip -a $membase -e $membase \
+	$uboot_version -d "$vmz" "$ofile"
     ${MKIMAGE} -A ppc -O linux -T kernel -C gzip -a $membase -e $membase \
 	$uboot_version -d "$vmz" "$ofile"
     if [ -z "$cacheit" ]; then

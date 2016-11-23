@@ -246,6 +246,9 @@ static int __release_resource(struct resource *old, bool release_child)
 {
 	struct resource *tmp, **p, *chd;
 
+	if (WARN_ON(!old->parent))
+		return -EINVAL;
+
 	p = &old->parent->child;
 	for (;;) {
 		tmp = *p;

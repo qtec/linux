@@ -1,0 +1,136 @@
+/include/ "qt5023.dtsi"
+
+&axi1 {
+		pll_0: pll_0 {
+			#address-cells = <1>;
+			#size-cells = <1>;
+		    	compatible = "qtec,axi_pll-1.00.a";
+			reg = < 0x300b0000 0x1000 >;
+	    	};
+		cmosis_fg_0: cmosis_fg_0 {
+			#address-cells = <1>;
+			#size-cells = <1>;
+		       	compatible = "qtec,axi_cmosis_if-1.00.a";
+			reg = < 0x300c0000 0x10000 >;
+			qtec,pll = < &pll_0 >;
+			qtec,pixel_clk = < 30000000 >;
+			qtec,bus_clk =   < 85714285 >;
+			qtec,sync_word = < 0xb13 >;
+			qtec,bayer_chip = <1> ;
+			qtec,offset = <0xffffffc3> ; /* -61*/
+			qtec,adc_gain = <50> ;
+			qtec,vramp = <109> ;
+			qtec,bit_mode = < 10 >;
+			qtec,sync_channels = < 16 >;
+	        };
+		cdma_0: cdma_0{
+			#address-cells = <1>;
+			#size-cells = <1>;
+		     	compatible = "xlnx,axi_cdma-3.04.a";
+			reg = < 0x30050000 0x10000 >;
+			interrupt-parent = <&xps_intc_0>;
+			interrupts = < 3 2 >;
+
+		};
+		white_0: white_0 {
+			#address-cells = <1>;
+			#size-cells = <1>;
+			compatible = "qtec,axi_white_balance-1.00.a";
+			reg = < 0x300e0000 0x1000 >;
+		};
+		/*testgen_0: testgen_0{
+			#address-cells = <1>;
+			#size-cells = <1>;
+		     	compatible = "qtec,axi_fb_testgen-1.00.a";
+			reg = < 0x30070000 0x10000 >;
+			qtec,test_mem = <&testgen_mem>;
+			interrupt-parent = <&xps_intc_0>;
+			interrupts = < 6 2 >;
+		};*/
+		packer_0: packer_0{
+			#address-cells = <1>;
+			#size-cells = <1>;
+		     	compatible = "qtec,axi_matrix_packer-1.00.a";
+			reg = < 0x30060000 0x10000 >;
+			qtec,serial_number = "Invalid Head Serial Number";
+			qtec,bitstream_version = < 0 >;
+			qtec,head_i2c_address = < 0 >;
+			qtec,cdma = <&cdma_0>;
+			qtec,desc_mem= <&cdma_desc_mem>;
+			qtec,pcie_bridge= <&pcie_bridge_0>;
+			qtec,aperture-addr= < 0  4 >;
+			qtec,circular_buffer= <&video_mem>;
+			qtec,sensor = <&cmosis_fg_0>;
+			qtec,pll = < &pll_0 >;
+			qtec,white_balance= <&white_0>;
+			/*qtec,testgen = <&testgen_0>;*/
+			interrupt-parent = <&xps_intc_0>;
+			interrupts = < 5 2 >;
+		};
+
+		uart_0: uart_0{
+			#address-cells = <1>;
+			#size-cells = <1>;
+			compatible = "xlnx,xps-uartlite-1.00.a";
+			reg = < 0x30070000 0x10000 >;
+			interrupt-parent = <&xps_intc_0>;
+			interrupts = < 8 2 >;
+		};
+
+		/*Leds*/
+		leds {
+			compatible = "gpio-leds";
+			reg = < 0x30040000 010000 >;
+			red {
+				gpios = <&gpio_0 0 0>;
+				linux,default-trigger = "drop-qt5023_video0";
+			};
+			yellow {
+				gpios = <&gpio_0 1 0>;
+				linux,default-trigger = "packer-qt5023_video0";
+			};
+			green {
+				gpios = <&gpio_0 2 0>;
+				linux,default-trigger = "heartbeat";
+			};
+		};
+
+		gpio_0: gpio_0 { /*Needs to be declared after leds*/
+			#gpio-cells = <2>;
+			compatible = "xlnx,xps-gpio-1.00.a";
+			reg = < 0x30040000 010000 >;
+			xlnx,dout-default = < 0xffffffff >;
+			xlnx,tri-default =  < 0xfffffff8 >;
+			xlnx,gpio-width = < 5 >;
+		};
+
+		/*Memory resources*/
+		cdma_desc_mem: cdma_desc_mem {
+			#address-cells = <1>;
+			#size-cells = <1>;
+		     	compatible = "qtec,memory-pool-1.00a";
+			reg = < 0x38000000 0x4000 >;
+			reg-axi = < 0x38000000 0x4000 >;
+		};
+		video_mem: video_mem {
+			#address-cells = <1>;
+			#size-cells = <1>;
+		     	compatible = "qtec,memory-pool-1.00a";
+			reg = < 0x10000000 0x4000000 >;
+			reg-axi = < 0x10000000 0x4000000>; //Duplicated
+		};
+		distortion_mem: distortion_mem {
+			#address-cells = <1>;
+			#size-cells = <1>;
+		     	compatible = "qtec,memory-pool-1.00a";
+			reg = < 0x14000000 0x2000000 >;
+			reg-axi = < 0x14000000 0x2000000 >;
+		};
+		testgen_mem: testgen_mem {
+			#address-cells = <1>;
+			#size-cells = <1>;
+		     	compatible = "qtec,memory-pool-1.00a";
+			reg = < 0x16000000 0x2000000 >;
+			reg-axi = < 0x16000000 0x2000000 >;
+		};
+	};

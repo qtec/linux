@@ -136,6 +136,41 @@ fw-shipped-$(CONFIG_USB_VICAM) += vicam/firmware.fw
 fw-shipped-$(CONFIG_VIDEO_CPIA2) += cpia2/stv0672_vp4.bin
 fw-shipped-$(CONFIG_YAM) += yam/1200.bin yam/9600.bin
 
+fw-shipped-$(CONFIG_IO1000_PLATFORM) +=  \
+				qtec/io1000/IO1000_BASE.bin \
+				qtec/io1000/IO1000_GOLDEN.bin \
+				qtec/io1000/IO1000_LASER.bin
+
+fw-shipped-$(CONFIG_QT5023) +=  \
+				qtec/qt5023/AXI_LX100T_CMOSIF-FB4.dtb \
+				qtec/qt5023/AXI_LX100T_CMOSIF-FB4.bin \
+				qtec/qt5023/AXI_LX100T_CMOSIF-BAYER.dtb \
+				qtec/qt5023/AXI_LX100T_CMOSIF-BAYER.bin \
+				qtec/qt5023/AXI_LX100T_CMOSIF-MONO.dtb \
+				qtec/qt5023/AXI_LX100T_CMOSIF-MONO.bin \
+				qtec/qt5023/AXI_LX100T_DUAL_CMOSIF.dtb \
+				qtec/qt5023/AXI_LX100T_DUAL_CMOSIF.bin \
+				qtec/qt5023/AXI_LX100T_BASIC.dtb \
+				qtec/qt5023/AXI_LX100T_BASIC.bin \
+				qtec/qt5023/AXI_LX100T_CCD.dtb \
+				qtec/qt5023/AXI_LX100T_CCD.bin \
+				qtec/qt5023/AXI_LX100T_ROIC.dtb \
+				qtec/qt5023/AXI_LX100T_ROIC.bin \
+				qtec/qt5046/AXI_7K160T_BASIC.dtb \
+				qtec/qt5046/AXI_7K160T_BASIC.kbpi \
+				qtec/qt5046/AXI_7K160T_CMOSIF-FB4.dtb \
+				qtec/qt5046/AXI_7K160T_CMOSIF-FB4.kbpi
+
+$(obj)/qtec/qt5046/AXI_7K160T_CMOSIF-FB4.dtb: $(objtree)/$(obj)/qtec/qt5046/qt5046.dtsi
+$(obj)/qtec/qt5046/AXI_7K160T_BASIC.dtb: $(objtree)/$(obj)/qtec/qt5046/qt5046.dtsi
+$(obj)/qtec/qt5023/AXI_LX100T_ROIC.dtb: $(objtree)/$(obj)/qtec/qt5023/qt5023.dtsi
+$(obj)/qtec/qt5023/AXI_LX100T_CCD.dtb: $(objtree)/$(obj)/qtec/qt5023/qt5023.dtsi
+$(obj)/qtec/qt5023/AXI_LX100T_CMOSIF-BAYER.dtb: $(objtree)/$(obj)/qtec/qt5023/qt5023-cmosis.dtsi $(objtree)/$(obj)/qtec/qt5023/qt5023.dtsi $(objtree)/$(obj)/qtec/qt5023/qt5023-cmosis.dtsi $(objtree)/$(obj)/qtec/qt5023/qt5023-cmosis-legacy.dtsi
+$(obj)/qtec/qt5023/AXI_LX100T_CMOSIF-MONO.dtb: $(objtree)/$(obj)/qtec/qt5023/qt5023-cmosis.dtsi $(objtree)/$(obj)/qtec/qt5023/qt5023.dtsi $(objtree)/$(obj)/qtec/qt5023/qt5023-cmosis.dtsi $(objtree)/$(obj)/qtec/qt5023/qt5023-cmosis-legacy.dtsi
+$(obj)/qtec/qt5023/AXI_LX100T_DUAL_CMOSIF.dtb: $(objtree)/$(obj)/qtec/qt5023/qt5023-cmosis.dtsi $(objtree)/$(obj)/qtec/qt5023/qt5023.dtsi
+$(obj)/qtec/qt5023/AXI_LX100T_BASIC.dtb: $(objtree)/$(obj)/qtec/qt5023/qt5023.dtsi
+$(obj)/qtec/qt5023/AXI_LX100T_CMOSIF-FB4.dtb: $(objtree)/$(obj)/qtec/qt5023/qt5023.dtsi $(objtree)/$(obj)/qtec/qt5023/qt5023-cmosis.dtsi
+
 fw-shipped-all := $(fw-shipped-y) $(fw-shipped-m) $(fw-shipped-)
 
 quiet_cmd_ihex  = IHEX    $@
@@ -169,6 +204,15 @@ quiet_cmd_fwbin = MK_FW   $@
 		  echo "    $${ASM_WORD} _fw_$${FWSTR}_name"		>>$@;\
 		  echo "    $${ASM_WORD} _fw_$${FWSTR}_bin"		>>$@;\
 		  echo "    $${ASM_WORD} _fw_end - _fw_$${FWSTR}_bin"	>>$@;
+
+quiet_cmd_bit2bin = BIT2BIN $@
+      cmd_bit2bin = scripts/xilinx_bit2bin SPI $< $@
+
+quiet_cmd_bit2kbpi = BIT2KBIN $@
+      cmd_bit2kbpi = scripts/xilinx_bit2bin KBPI $< $@
+
+quiet_cmd_dtc = DTC $@
+      cmd_dtc = $(objtree)/scripts/dtc/dtc -O dtb -b 0 -p 1024 -@ -o $@ $<
 
 # One of these files will change, or come into existence, whenever
 # the configuration changes between 32-bit and 64-bit. The .S files
@@ -215,6 +259,20 @@ $(obj)/%.fw: $(obj)/%.HEX $(ihex2fw_dep)
 # .H16 is our own modified form of Intel HEX, with 16-bit length for records.
 $(obj)/%.fw: $(obj)/%.H16 $(ihex2fw_dep)
 	$(call cmd,h16tofw)
+
+#Xilinx bit2bin
+$(obj)/%.bin: $(obj)/%.bit
+	$(call cmd,bit2bin)
+
+$(obj)/%.kbpi: $(obj)/%.bit
+	$(call cmd,bit2kbpi)
+
+#dtb
+$(obj)/%.dtb: $(obj)/%.dts
+	$(call cmd,dtc)
+
+$(firmware-dirs):
+	$(call cmd,mkdir)
 
 obj-y				 += $(patsubst %,%.gen.o, $(fw-external-y))
 obj-$(CONFIG_FIRMWARE_IN_KERNEL) += $(patsubst %,%.gen.o, $(fw-shipped-y))

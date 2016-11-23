@@ -704,6 +704,12 @@ EXPORT_SYMBOL_GPL(vb2_streamon);
  */
 int vb2_streamoff(struct vb2_queue *q, enum v4l2_buf_type type)
 {
+	/*Qtec hack, allows streamoff on read/write mode*/
+	if (q->fileio){
+		vb2_core_queue_release(q);
+		return 0;
+	}
+
 	if (vb2_fileio_is_active(q)) {
 		dprintk(1, "file io in progress\n");
 		return -EBUSY;

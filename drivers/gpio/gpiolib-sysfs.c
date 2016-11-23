@@ -350,6 +350,15 @@ static ssize_t active_low_store(struct device *dev,
 }
 static DEVICE_ATTR_RW(active_low);
 
+static ssize_t id_show(struct device *dev,
+		struct device_attribute *attr, char *buf)
+{
+	struct gpiod_data *data = dev_get_drvdata(dev);
+
+	return  sprintf(buf, "%d\n", desc_to_gpio(data->desc));
+}
+static DEVICE_ATTR_RO(id);
+
 static umode_t gpio_is_visible(struct kobject *kobj, struct attribute *attr,
 			       int n)
 {
@@ -377,6 +386,7 @@ static struct attribute *gpio_attrs[] = {
 	&dev_attr_edge.attr,
 	&dev_attr_value.attr,
 	&dev_attr_active_low.attr,
+	&dev_attr_id.attr,
 	NULL,
 };
 

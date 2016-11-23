@@ -309,8 +309,8 @@ static int piix4_setup_sb800(struct pci_dev *PIIX4_dev,
 		return -ENODEV;
 	}
 
-	if (acpi_check_region(piix4_smba, SMBIOSIZE, piix4_driver.name))
-		return -ENODEV;
+	acpi_check_region(piix4_smba, SMBIOSIZE, piix4_driver.name);
+	/*On some cameras, returning -ENODEV here makes /dev/i2c-0 unaccessible*/
 
 	if (!request_region(piix4_smba, SMBIOSIZE, piix4_driver.name)) {
 		dev_err(&PIIX4_dev->dev, "SMBus region 0x%x already in use!\n",
@@ -424,7 +424,7 @@ static int piix4_transaction(struct i2c_adapter *piix4_adapter)
 			"Resetting...\n", temp);
 		outb_p(temp, SMBHSTSTS);
 		if ((temp = inb_p(SMBHSTSTS)) != 0x00) {
-			dev_err(&piix4_adapter->dev, "Failed! (%02x)\n", temp);
+			dev_dbg(&piix4_adapter->dev, "Failed! (%02x)\n", temp);
 			return -EBUSY;
 		} else {
 			dev_dbg(&piix4_adapter->dev, "Successful!\n");
@@ -446,7 +446,7 @@ static int piix4_transaction(struct i2c_adapter *piix4_adapter)
 
 	/* If the SMBus is still busy, we give up */
 	if (timeout == MAX_TIMEOUT) {
-		dev_err(&piix4_adapter->dev, "SMBus Timeout!\n");
+		dev_dbg(&piix4_adapter->dev, "SMBus Timeout!\n");
 		result = -ETIMEDOUT;
 	}
 
@@ -471,7 +471,7 @@ static int piix4_transaction(struct i2c_adapter *piix4_adapter)
 		outb_p(inb(SMBHSTSTS), SMBHSTSTS);
 
 	if ((temp = inb_p(SMBHSTSTS)) != 0x00) {
-		dev_err(&piix4_adapter->dev, "Failed reset at end of "
+		dev_dbg(&piix4_adapter->dev, "Failed reset at end of "
 			"transaction (%02x)\n", temp);
 	}
 	dev_dbg(&piix4_adapter->dev, "Transaction (post): CNT=%02x, CMD=%02x, "
@@ -790,10 +790,13 @@ static int piix4_probe(struct pci_dev *dev, const struct pci_device_id *id)
 	    dev->device == PCI_DEVICE_ID_ATI_SBX00_SMBUS) {
 		if (dev->revision < 0x40) {
 			retval = piix4_setup_aux(dev, id, 0x58);
-		} else {
+		}
+#if 0 //Fix warnings on boot
+		else {
 			/* SB800 added aux bus too */
 			retval = piix4_setup_sb800(dev, id, 1);
 		}
+#endif
 	}
 
 	if (dev->vendor == PCI_VENDOR_ID_AMD &&

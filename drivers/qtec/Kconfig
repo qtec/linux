@@ -1,0 +1,166 @@
+menu "Qtec Drivers"
+
+menu "QT5023"
+config QT5023
+	tristate "Qtec's QT5023 camera head"
+	depends on PCI
+	depends on UIO
+	select OF
+	select OF_FLATTREE
+	select OF_DEVICE
+	select OF_EARLY_FLATTREE
+	select IRQ_DOMAIN
+	help
+		Driver for QT5023 camera head architechture
+
+config QTEC_PCIE
+       tristate "AXI/PCIe irq handler"
+       help
+               Shows error messages on syslog when accessing invalid areas of the bridge
+
+config QT5023_VIDEO
+	tristate "QT5023 V4L2 Driver"
+	depends on VIDEO_V4L2
+	select VIDEOBUF2_DMA_SG
+	select LEDS_TRIGGERS
+	help
+		V4L2 implementation of Qtec drivers. Ohhh yeah!
+
+config QTEC_WHITE
+	tristate "Qtec White Balance V4L2 Subdevice"
+	depends on VIDEO_V4L2
+	help
+		Qtec white V4L2 Subdevice
+
+config QTEC_CMOSIS
+	tristate "Qtec Cmosis Framegenerator V4L2 Subdevice"
+	depends on VIDEO_V4L2
+	depends on SPI
+	help
+		Qtec CMOSIS V4L2 Subdevice
+
+config QTEC_CCD
+	tristate "Qtec CCD Framegenerator V4L2 Subdevice"
+	depends on VIDEO_V4L2
+	depends on SPI
+	help
+		Qtec CCD V4L2 Subdevice
+
+config QTEC_ROIC
+	tristate "Qtec ROIC Framegenerator V4L2 Subdevice"
+	depends on VIDEO_V4L2
+	depends on SPI
+	help
+		Qtec ROIC V4L2 Subdevice
+
+config QTEC_XFORM
+	tristate "Qtec's Xform Distortion/Gain Map V4L2 Subdevice"
+	select VIDEOBUF2_VMALLOC
+	help
+		Qtec Xform V4L2 Subdevice
+
+config QTEC_TESTGEN
+	tristate "Qtec's Xform Test Generator V4L2 Subdevice"
+	select VIDEOBUF2_VMALLOC
+	help
+		Qtec Test Generator V4L2 Subdevice
+
+config QTEC_MEM
+       tristate "Qtec Contiguos Memory"
+       help
+              Char device to access Qtec dmamem allocated on boot
+
+config QTEC_M43
+       tristate "Qtec Micro 4/3 Controller"
+       help
+              Controller for Micro 4/3 lens via I2C
+
+config QTEC_ENCODER
+       tristate "Qtec Encoder Controller"
+       help
+              Controller for Trigger Encoder (originally for Buteo)
+
+config QTEC_CLK
+       tristate "Qtec Dummy Fixed clk"
+       help
+              This driver is required by qt5046 i2c-xiic controller.
+
+config V4L2_LOOPBACK
+	tristate "Video4Linux Loopback"
+	depends on VIDEO_V4L2
+	help
+		Video4Linux Loopback from https://github.com/umlaeute/v4l2loopback
+
+config QTEC_PCITEST
+       tristate "Qtec PCIe benchmark"
+       help
+              Test to benchmark the PCIe bandwidth
+
+endmenu
+
+menu "IO1000"
+
+config QTEC_IO1000_TEST
+	tristate "IO1000 simple test"
+	help
+		Simple test module for developing the IO1000
+
+config IO1000_PLATFORM
+	tristate "IO1000 Platform Data"
+	select QTEC_LPC_SPI
+	select GPIO_PCA953X
+	select GPIO_SYSFS
+	select MTD_M25P80
+	help
+		IO1000 Platform Data
+
+config IO1000_GOLDEN
+	tristate "IO1000 Golden Platform Data"
+	select IO1000_PLATFORM
+	select QTEC_LPC_GPIO
+	select GPIO_SYSFS
+	help
+		IO1000 Platform Data for Golden Bitstream
+
+config IO1000_LASER
+	tristate "IO1000 Laser Platform Data"
+	select IO1000_PLATFORM
+	select QTEC_LPC_SPI
+	select QTEC_LPC_GPIO
+	select GPIO_SYSFS
+	help
+		IO1000 Platform Data for Laser Bitstream
+endmenu
+
+menu "QT5038"
+config QT5038_PLATFORM
+	tristate "QT5038 Platform Data"
+	select QTEC_LPC_SPI
+	select QTEC_LPC_GPIO
+	select GPIO_PCA953X
+	select GPIO_SYSFS
+	select LEDS_PCA963X
+	select MTD_M25P80
+	help
+		QT5038 Platform Data
+
+endmenu
+
+menu "common"
+config QTEC_LPC_SPI
+	tristate "Qtec's LPC SPI Driver"
+	help
+		Qtec's LPC SPI Driver
+
+config QTEC_LPC_GPIO
+	tristate "Qtec's LPC GPIO Driver"
+	help
+		Qtec's LPC GPIO Driver
+
+config QTEC_HWMON
+	tristate "Qtec's HWMON (PIC) Driver"
+	help
+		Qtec's voltage monitor
+endmenu
+
+endmenu

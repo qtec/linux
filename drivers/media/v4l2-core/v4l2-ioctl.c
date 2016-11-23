@@ -607,11 +607,22 @@ static void v4l_print_crop(const void *arg, bool write_only)
 static void v4l_print_selection(const void *arg, bool write_only)
 {
 	const struct v4l2_selection *p = arg;
+	int i;
 
-	pr_cont("type=%s, target=%d, flags=0x%x, wxh=%dx%d, x,y=%d,%d\n",
-		prt_names(p->type, v4l2_type_names),
-		p->target, p->flags,
-		p->r.width, p->r.height, p->r.left, p->r.top);
+	if (p->rectangles==0)
+		pr_cont("type=%s, target=%d, flags=0x%x, wxh=%dx%d"
+			", x,y=%d,%d\n",
+			prt_names(p->type, v4l2_type_names),
+			p->target, p->flags,
+			p->r.width, p->r.height, p->r.left, p->r.top);
+	else{
+		pr_cont("type=%s, target=%d, flags=0x%x\n",
+			prt_names(p->type, v4l2_type_names),
+			p->target, p->flags);
+		for (i=0; i<p->rectangles;i++)
+			pr_cont("rectangle %d: wxh=%dx%d, x,y=%d,%d\n",
+				i, p->r.width, p->r.height, p->r.left, p->r.top);
+	}
 }
 
 static void v4l_print_jpegcompression(const void *arg, bool write_only)
@@ -1238,11 +1249,23 @@ static void v4l_fill_fmtdesc(struct v4l2_fmtdesc *fmt)
 	case V4L2_PIX_FMT_TM6000:	descr = "A/V + VBI Mux Packet"; break;
 	case V4L2_PIX_FMT_CIT_YYVYUY:	descr = "GSPCA CIT YYVYUY"; break;
 	case V4L2_PIX_FMT_KONICA420:	descr = "GSPCA KONICA420"; break;
+	case V4L2_PIX_FMT_HSV24:	descr = "24-bit HSV 8-8-8"; break;
+	case V4L2_PIX_FMT_HSV32:	descr = "32-bit XHSV 8-8-8-8"; break;
 	case V4L2_SDR_FMT_CU8:		descr = "Complex U8"; break;
 	case V4L2_SDR_FMT_CU16LE:	descr = "Complex U16LE"; break;
 	case V4L2_SDR_FMT_CS8:		descr = "Complex S8"; break;
 	case V4L2_SDR_FMT_CS14LE:	descr = "Complex S14LE"; break;
 	case V4L2_SDR_FMT_RU12LE:	descr = "Real U12LE"; break;
+	case V4L2_PIX_FMT_QTEC_RGBPP40:	descr = "Qtec RGBPP (40 bits)"; break;
+	case V4L2_PIX_FMT_QTEC_RGBPP80:	descr = "Qtec RGBPP (80 bits)"; break;
+	case V4L2_PIX_FMT_QTEC_DISTORTION: descr = "Qtec Distortion"; break;
+	case V4L2_PIX_FMT_QTEC_GREEN8:	descr = "Qtec Green (8 bits)"; break;
+	case V4L2_PIX_FMT_QTEC_GREEN16:	descr = "Qtec Green (16 bits)"; break;
+	case V4L2_PIX_FMT_QTEC_GREEN16_BE: descr = "Qtec Green BE (16 bits)"; break;
+	case V4L2_PIX_FMT_QTEC_HRGB:	descr = "Qtec HRGB (32 bits)"; break;
+	case V4L2_PIX_FMT_QTEC_YRGB:	descr = "Qtec YRGB (32 bits)"; break;
+	case V4L2_PIX_FMT_QTEC_BGRH:	descr = "Qtec BGRH (32 bits)"; break;
+	case V4L2_PIX_FMT_QTEC_BGRY:	descr = "Qtec BGRY (32 bits)"; break;
 
 	default:
 		/* Compressed formats */
@@ -2113,6 +2136,7 @@ static int v4l_g_crop(const struct v4l2_ioctl_ops *ops,
 	struct v4l2_crop *p = arg;
 	struct v4l2_selection s = {
 		.type = p->type,
+		.rectangles = 0,
 	};
 	int ret;
 
@@ -2141,6 +2165,7 @@ static int v4l_s_crop(const struct v4l2_ioctl_ops *ops,
 	struct v4l2_selection s = {
 		.type = p->type,
 		.r = p->c,
+		.rectangles = 0,
 	};
 
 	if (ops->vidioc_s_crop)
@@ -2160,7 +2185,7 @@ static int v4l_cropcap(const struct v4l2_ioctl_ops *ops,
 				struct file *file, void *fh, void *arg)
 {
 	struct v4l2_cropcap *p = arg;
-	struct v4l2_selection s = { .type = p->type };
+	struct v4l2_selection s = { .type = p->type, .rectangles = 0, };
 	int ret = 0;
 
 	/* setting trivial pixelaspect */
@@ -2212,6 +2237,30 @@ static int v4l_cropcap(const struct v4l2_ioctl_ops *ops,
 	p->defrect = s.r;
 
 	return 0;
+}
+
+static int v4l_s_selection(const struct v4l2_ioctl_ops *ops,
+				struct file *file, void *fh, void *arg)
+{
+	struct v4l2_selection *s = arg;
+
+	if (s->rectangles &&
+		!access_ok(VERIFY_READ, s->pr, s->rectangles * sizeof(*s->pr)))
+		return -EFAULT;
+
+	return ops->vidioc_s_selection(file, fh, s);
+}
+
+static int v4l_g_selection(const struct v4l2_ioctl_ops *ops,
+				struct file *file, void *fh, void *arg)
+{
+	struct v4l2_selection *s = arg;
+
+	if (s->rectangles &&
+		!access_ok(VERIFY_WRITE, s->pr, s->rectangles * sizeof(*s->pr)))
+		return -EFAULT;
+
+	return ops->vidioc_g_selection(file, fh, s);
 }
 
 static int v4l_log_status(const struct v4l2_ioctl_ops *ops,
@@ -2516,8 +2565,8 @@ static struct v4l2_ioctl_info v4l2_ioctls[] = {
 	IOCTL_INFO_FNC(VIDIOC_CROPCAP, v4l_cropcap, v4l_print_cropcap, INFO_FL_CLEAR(v4l2_cropcap, type)),
 	IOCTL_INFO_FNC(VIDIOC_G_CROP, v4l_g_crop, v4l_print_crop, INFO_FL_CLEAR(v4l2_crop, type)),
 	IOCTL_INFO_FNC(VIDIOC_S_CROP, v4l_s_crop, v4l_print_crop, INFO_FL_PRIO),
-	IOCTL_INFO_STD(VIDIOC_G_SELECTION, vidioc_g_selection, v4l_print_selection, INFO_FL_CLEAR(v4l2_selection, r)),
-	IOCTL_INFO_STD(VIDIOC_S_SELECTION, vidioc_s_selection, v4l_print_selection, INFO_FL_PRIO | INFO_FL_CLEAR(v4l2_selection, r)),
+	IOCTL_INFO_FNC(VIDIOC_G_SELECTION, v4l_g_selection, v4l_print_selection, 0),
+	IOCTL_INFO_FNC(VIDIOC_S_SELECTION, v4l_s_selection, v4l_print_selection, INFO_FL_PRIO),
 	IOCTL_INFO_STD(VIDIOC_G_JPEGCOMP, vidioc_g_jpegcomp, v4l_print_jpegcompression, 0),
 	IOCTL_INFO_STD(VIDIOC_S_JPEGCOMP, vidioc_s_jpegcomp, v4l_print_jpegcompression, INFO_FL_PRIO),
 	IOCTL_INFO_FNC(VIDIOC_QUERYSTD, v4l_querystd, v4l_print_std, 0),

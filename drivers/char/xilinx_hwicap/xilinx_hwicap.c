@@ -71,6 +71,8 @@
  * currently programmed in the FPGA.
  */
 
+#define DEBUG
+
 #include <linux/module.h>
 #include <linux/kernel.h>
 #include <linux/types.h>
@@ -119,6 +121,7 @@ static struct class *icap_class;
 #define UNIMPLEMENTED 0xFFFF
 
 static const struct config_registers v2_config_registers = {
+	.icap_len=32,
 	.CRC = 0,
 	.FAR = 1,
 	.FDRI = 2,
@@ -144,6 +147,7 @@ static const struct config_registers v2_config_registers = {
 };
 
 static const struct config_registers v4_config_registers = {
+	.icap_len=32,
 	.CRC = 0,
 	.FAR = 1,
 	.FDRI = 2,
@@ -169,6 +173,7 @@ static const struct config_registers v4_config_registers = {
 };
 
 static const struct config_registers v5_config_registers = {
+	.icap_len=32,
 	.CRC = 0,
 	.FAR = 1,
 	.FDRI = 2,
@@ -191,6 +196,32 @@ static const struct config_registers v5_config_registers = {
 	.TIMER = 17,
 	.BOOTSTS = 18,
 	.CTL_1 = 19,
+};
+
+static const struct config_registers s6_config_registers = {
+	.icap_len=16,
+	.CRC = UNIMPLEMENTED,
+	.FAR = UNIMPLEMENTED,
+	.FDRI = UNIMPLEMENTED,
+	.FDRO = UNIMPLEMENTED,
+	.CMD = 0x5,
+	.CTL = UNIMPLEMENTED,
+	.MASK = UNIMPLEMENTED,
+	.STAT = UNIMPLEMENTED,
+	.LOUT = UNIMPLEMENTED,
+	.COR = UNIMPLEMENTED,
+	.MFWR = UNIMPLEMENTED,
+	.FLR = UNIMPLEMENTED,
+	.KEY = UNIMPLEMENTED,
+	.CBC = UNIMPLEMENTED,
+	.IDCODE = 0xe,
+	.AXSS = UNIMPLEMENTED,
+	.C0R_1 = UNIMPLEMENTED,
+	.CSOB = UNIMPLEMENTED,
+	.WBSTAR = UNIMPLEMENTED,
+	.TIMER = UNIMPLEMENTED,
+	.BOOTSTS = UNIMPLEMENTED,
+	.CTL_1 = UNIMPLEMENTED,
 };
 
 static const struct config_registers v6_config_registers = {
@@ -234,10 +265,18 @@ static int hwicap_command_desync(struct hwicap_drvdata *drvdata)
 	/*
 	 * Create the data to be written to the ICAP.
 	 */
-	buffer[index++] = hwicap_type_1_write(drvdata->config_regs->CMD) | 1;
-	buffer[index++] = XHI_CMD_DESYNCH;
-	buffer[index++] = XHI_NOOP_PACKET;
-	buffer[index++] = XHI_NOOP_PACKET;
+	if (drvdata->config_regs->icap_len==32){
+		buffer[index++] = hwicap_type_1_write(drvdata->config_regs->CMD) | 1;
+		buffer[index++] = XHI_CMD_DESYNCH;
+		buffer[index++] = XHI_NOOP_PACKET;
+		buffer[index++] = XHI_NOOP_PACKET;
+	}
+	else{
+		buffer[index++] = hwicap_type_1_write_16(drvdata->config_regs->CMD) | 1;
+		buffer[index++] = XHI_CMD_DESYNCH;
+		buffer[index++] = XHI_NOOP_PACKET_16;
+		buffer[index++] = XHI_NOOP_PACKET_16;
+	}
 
 	/*
 	 * Write the data to the FIFO and intiate the transfer of data present
@@ -265,14 +304,24 @@ static int hwicap_get_configuration_register(struct hwicap_drvdata *drvdata,
 	u32 buffer[6];
 	u32 index = 0;
 
-	/*
-	 * Create the data to be written to the ICAP.
-	 */
-	buffer[index++] = XHI_DUMMY_PACKET;
-	buffer[index++] = XHI_NOOP_PACKET;
-	buffer[index++] = XHI_SYNC_PACKET;
-	buffer[index++] = XHI_NOOP_PACKET;
-	buffer[index++] = XHI_NOOP_PACKET;
+	if (drvdata->config_regs->icap_len==32){
+		/*
+		 * Create the data to be written to the ICAP.
+		 */
+		buffer[index++] = XHI_DUMMY_PACKET;
+		buffer[index++] = XHI_NOOP_PACKET;
+		buffer[index++] = XHI_SYNC_PACKET;
+		buffer[index++] = XHI_NOOP_PACKET;
+		buffer[index++] = XHI_NOOP_PACKET;
+	}
+	else {
+		buffer[index++] = XHI_DUMMY_PACKET_16;
+		buffer[index++] = XHI_DUMMY_PACKET_16;
+		buffer[index++] = XHI_SYNC_PACKET_HIGH_16;
+		buffer[index++] = XHI_SYNC_PACKET_LOW_16;
+		buffer[index++] = XHI_NOOP_PACKET_16;
+		buffer[index++] = XHI_NOOP_PACKET_16;
+	}
 
 	/*
 	 * Write the data to the FIFO and initiate the transfer of data present
@@ -289,9 +338,17 @@ static int hwicap_get_configuration_register(struct hwicap_drvdata *drvdata,
 		return -EIO;
 
 	index = 0;
-	buffer[index++] = hwicap_type_1_read(reg) | 1;
-	buffer[index++] = XHI_NOOP_PACKET;
-	buffer[index++] = XHI_NOOP_PACKET;
+	if (drvdata->config_regs->icap_len==32){
+		buffer[index++] = hwicap_type_1_read(reg) | 1;
+		buffer[index++] = XHI_NOOP_PACKET;
+		buffer[index++] = XHI_NOOP_PACKET;
+	}
+	else{
+		buffer[index++] = hwicap_type_1_read_16(reg) | 1;
+		buffer[index++] = XHI_NOOP_PACKET_16;
+		buffer[index++] = XHI_NOOP_PACKET_16;
+		buffer[index++] = XHI_NOOP_PACKET_16;
+	}
 
 	/*
 	 * Write the data to the FIFO and intiate the transfer of data present
@@ -770,6 +827,8 @@ static int hwicap_of_probe(struct platform_device *op,
 			regs = &v4_config_registers;
 		} else if (!strcmp(family, "virtex5")) {
 			regs = &v5_config_registers;
+		} else if (!strcmp(family, "spartan6")) {
+			regs = &s6_config_registers;
 		} else if (!strcmp(family, "virtex6")) {
 			regs = &v6_config_registers;
 		}
@@ -813,6 +872,8 @@ static int hwicap_drv_probe(struct platform_device *pdev)
 			regs = &v4_config_registers;
 		} else if (!strcmp(family, "virtex5")) {
 			regs = &v5_config_registers;
+		} else if (!strcmp(family, "spartan6")) {
+			regs = &s6_config_registers;
 		} else if (!strcmp(family, "virtex6")) {
 			regs = &v6_config_registers;
 		}
@@ -832,6 +893,7 @@ static int hwicap_drv_remove(struct platform_device *pdev)
 static const struct of_device_id hwicap_of_match[] = {
 	{ .compatible = "xlnx,opb-hwicap-1.00.b", .data = &buffer_icap_config},
 	{ .compatible = "xlnx,xps-hwicap-1.00.a", .data = &fifo_icap_config},
+	{ .compatible = "xlnx,axi-hwicap-2.00.a", .data = &fifo_icap_config},
 	{},
 };
 MODULE_DEVICE_TABLE(of, hwicap_of_match);

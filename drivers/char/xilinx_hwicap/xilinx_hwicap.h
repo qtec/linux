@@ -39,6 +39,15 @@
 
 #include <linux/io.h>
 
+#ifndef out_be32
+static inline void out_be32(void *address, u32 data){
+	return iowrite32(data,address);
+}
+static inline u32 in_be32(void *address){
+	return ioread32(address);
+}
+#endif
+
 struct hwicap_drvdata {
 	u32 write_buffer_in_use;  /* Always in [0,3] */
 	u8 write_buffer[4];
@@ -107,9 +116,12 @@ struct hwicap_driver_config {
 
 #define XHI_TYPE_SHIFT              29
 #define XHI_REGISTER_SHIFT          13
+#define XHI_REGISTER_SHIFT_16       5
 #define XHI_OP_SHIFT                27
 
 #define XHI_TYPE_1                  1
+#define XHI_TYPE_1_WRITE_16         0x3000
+#define XHI_TYPE_1_READ_16          0x2800
 #define XHI_TYPE_2                  2
 #define XHI_OP_WRITE                2
 #define XHI_OP_READ                 1
@@ -120,6 +132,7 @@ struct hwicap_driver_config {
 #define XHI_FAR_BRAM_INT_BLOCK      2
 
 struct config_registers {
+	int icap_len;
 	u32 CRC;
 	u32 FAR;
 	u32 FDRI;
@@ -165,8 +178,12 @@ struct config_registers {
 
 /* Packet constants */
 #define XHI_SYNC_PACKET             0xAA995566UL
+#define XHI_SYNC_PACKET_HIGH_16     0xAA99
+#define XHI_SYNC_PACKET_LOW_16      0x5566
 #define XHI_DUMMY_PACKET            0xFFFFFFFFUL
+#define XHI_DUMMY_PACKET_16         0xFFFF
 #define XHI_NOOP_PACKET             (XHI_TYPE_1 << XHI_TYPE_SHIFT)
+#define XHI_NOOP_PACKET_16          0x2000
 #define XHI_TYPE_2_READ ((XHI_TYPE_2 << XHI_TYPE_SHIFT) | \
 			(XHI_OP_READ << XHI_OP_SHIFT))
 
@@ -205,6 +222,12 @@ static inline u32 hwicap_type_1_read(u32 reg)
 		(XHI_OP_READ << XHI_OP_SHIFT);
 }
 
+static inline u32 hwicap_type_1_read_16(u32 reg)
+{
+	return (reg << XHI_REGISTER_SHIFT_16) |
+		(XHI_TYPE_1_READ_16);
+}
+
 /**
  * hwicap_type_1_write - Generates a Type 1 write packet header
  * @reg: is the address of the register to be read back.
@@ -214,6 +237,12 @@ static inline u32 hwicap_type_1_write(u32 reg)
 	return (XHI_TYPE_1 << XHI_TYPE_SHIFT) |
 		(reg << XHI_REGISTER_SHIFT) |
 		(XHI_OP_WRITE << XHI_OP_SHIFT);
+}
+
+static inline u32 hwicap_type_1_write_16(u32 reg)
+{
+	return (reg << XHI_REGISTER_SHIFT_16) |
+		(XHI_TYPE_1_WRITE_16);
 }
 
 #endif

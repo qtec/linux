@@ -56,6 +56,7 @@ DEFINE_MUTEX(of_mutex);
  * or parent members of struct device_node.
  */
 DEFINE_RAW_SPINLOCK(devtree_lock);
+EXPORT_SYMBOL(devtree_lock);
 
 int of_n_addr_cells(struct device_node *np)
 {
@@ -269,6 +270,7 @@ struct device_node *__of_find_all_nodes(struct device_node *prev)
 	}
 	return np;
 }
+EXPORT_SYMBOL(__of_find_all_nodes);
 
 /**
  * of_find_all_nodes - Get next node in global list

@@ -1,0 +1,8 @@
+/dts-v1/;
+
+/include/ "qt5023-cmosis-legacy.dtsi"
+
+&cmosis_fg_0{
+	interrupt-parent = <&xps_intc_0>;
+	interrupts = < 4 2 >;
+};

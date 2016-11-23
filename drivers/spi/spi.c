@@ -688,6 +688,26 @@ int spi_register_board_info(struct spi_board_info const *info, unsigned n)
 
 	return 0;
 }
+EXPORT_SYMBOL(spi_register_board_info);
+
+int spi_unregister_board_info(struct spi_board_info const *info, unsigned n)
+{
+	struct boardinfo *bi;
+	struct boardinfo *bi_aux;
+	int i;
+
+	for (i = 0; i < n; i++, info++) {
+		mutex_lock(&board_lock);
+		list_for_each_entry_safe(bi, bi_aux,&board_list, list)
+			if (memcmp(&bi->board_info,info,sizeof(*info))==0)
+				list_del(&bi->list);
+		mutex_unlock(&board_lock);
+	}
+
+	return 0;
+}
+EXPORT_SYMBOL(spi_unregister_board_info);
+
 
 /*-------------------------------------------------------------------------*/
 

@@ -139,6 +139,8 @@ struct v4l2_subdev_frame_interval_enum {
  *	    defined in v4l2-common.h; V4L2_SEL_TGT_* .
  * @flags: constraint flags, defined in v4l2-common.h; V4L2_SEL_FLAG_*.
  * @r: coordinates of the selection window
+ * @pr:		array of rectangles containing the selection windows
+ * @rectangles:	Number of rectangles in pr structure. If zero, r is used instead
  * @reserved: for future use, set to zero for now
  *
  * Hardware may use multiple helper windows to process a video stream.
@@ -151,7 +153,11 @@ struct v4l2_subdev_selection {
 	__u32 target;
 	__u32 flags;
 	struct v4l2_rect r;
-	__u32 reserved[8];
+	__u32 rectangles;
+	union{
+		struct v4l2_ext_rect        *pr;
+		__u32 reserved[7];
+	};
 };
 
 /* Backwards compatibility define --- to be removed */

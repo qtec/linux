@@ -65,10 +65,8 @@ static int vb2_dma_sg_alloc_compacted(struct vb2_dma_sg_buf *buf,
 		int order;
 		int i;
 
+		/* Over allocate. Appertures are limited!*/
 		order = get_order(size);
-		/* Dont over allocate*/
-		if ((PAGE_SIZE << order) > size)
-			order--;
 
 		pages = NULL;
 		while (!pages) {
@@ -86,8 +84,12 @@ static int vb2_dma_sg_alloc_compacted(struct vb2_dma_sg_buf *buf,
 		}
 
 		split_page(pages, order);
-		for (i = 0; i < (1 << order); i++)
+		for (i = 0; (i < (1 << order)) && (i<(buf->num_pages)); i++)
 			buf->pages[last_page++] = &pages[i];
+
+		/* Free unused pages (if any) */
+		for (;i<(1 << order);i++)
+			__free_page(&pages[i]);
 
 		size -= PAGE_SIZE << order;
 	}

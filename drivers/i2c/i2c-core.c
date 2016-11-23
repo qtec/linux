@@ -2757,6 +2757,23 @@ struct i2c_adapter *i2c_get_adapter(int nr)
 }
 EXPORT_SYMBOL(i2c_get_adapter);
 
+int i2c_get_adapter_id_of_node(struct device_node *of_node){
+	struct i2c_adapter *adapter;
+	int vnr;
+	int ret = -1;
+
+	mutex_lock(&core_lock);
+	idr_for_each_entry(&i2c_adapter_idr, adapter, vnr){
+		if (adapter->dev.of_node == of_node){
+			ret = vnr;
+			break;
+		}
+	}
+	mutex_unlock(&core_lock);
+	return ret;
+}
+EXPORT_SYMBOL(i2c_get_adapter_id_of_node);
+
 void i2c_put_adapter(struct i2c_adapter *adap)
 {
 	if (!adap)

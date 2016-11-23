@@ -367,7 +367,7 @@ static void free_msi_irqs(struct pci_dev *dev)
 	for_each_pci_msi_entry(entry, dev)
 		if (entry->irq)
 			for (i = 0; i < entry->nvec_used; i++)
-				BUG_ON(irq_has_action(entry->irq + i));
+				WARN_ON(irq_has_action(entry->irq + i));
 
 	pci_msi_teardown_msi_irqs(dev);
 

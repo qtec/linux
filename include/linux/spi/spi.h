@@ -1264,10 +1264,15 @@ struct spi_board_info {
 #ifdef	CONFIG_SPI
 extern int
 spi_register_board_info(struct spi_board_info const *info, unsigned n);
+extern int
+spi_unregister_board_info(struct spi_board_info const *info, unsigned n);
 #else
 /* board init code may ignore whether SPI is configured or not */
 static inline int
 spi_register_board_info(struct spi_board_info const *info, unsigned n)
+	{ return 0; }
+static inline int
+spi_unregister_board_info(struct spi_board_info const *info, unsigned n)
 	{ return 0; }
 #endif
 

@@ -1,0 +1,87 @@
+/ {
+	#address-cells = <2>;
+	#size-cells = <1>;
+
+	axi1: axi1 {
+		#address-cells = <1>;
+		#size-cells = <1>;
+		compatible = "main-bus";
+		ranges =  <0x30000000 0 0xdead 0x10000000
+		   	0x10000000 0 0xbeef 0x10000000>; /*ranges 2&6 filled by driver*/
+		xps_spi_0: spi-flash {
+			#address-cells = <1>;
+			#size-cells = <1>;
+			compatible = "xlnx,xps-spi-2.00.b";
+			reg = < 0x30010000 0x10000 >;
+			interrupt-parent = <&xps_intc_0>;
+			interrupts = < 1 2 >;
+			xlnx,family = "virtex5";
+			xlnx,fifo-exist = <0x1>;
+			num-cs = <32>;
+			xlnx,num-transfer-bits = <0x8>;
+			xlnx,sck-ratio = <0x20>;
+			qtec,buffer_size = <256>;
+			ranges;
+			w25q64:flash@0 {
+				#address-cells = <1>;
+				#size-cells = <1>;
+				fpga-flash ;
+				compatible = "jedec,spi-nor";
+				reg = < 0 0>;
+				spi-max-frequency = <3125000>;
+				full@0{
+					reg = < 0x0 0x800000 >;
+					label = "Full FLASH";
+				};
+				partition@0{
+					reg = < 0x0 0x380000 >;
+					label = "Golden Bitstream";
+				};
+				partition@380000{
+					reg = < 0x380000 0x380000 >;
+					label = "User Bitstream";
+				};
+				partition@700000{
+					reg = < 0x700000 0x100000 >;
+					label = "Production Data";
+				};
+			} ;
+		} ;
+
+		xps_intc_0: interrupt-controller {
+			#address-cells = <1>;
+			#size-cells = <1>;
+			#interrupt-cells = <0x2>;
+			compatible = "xlnx,axi-intc-1.03.a";
+			interrupt-controller ;
+			reg = < 0x30000000 0x10000 >;
+			xlnx,num-intr-inputs = <0x20>;
+		} ;
+
+		pcie_bridge_0: pcie_bridge {
+			#address-cells = <1>;
+			#size-cells = <1>;
+			compatible = "xlnx,axi-pcie-1.00.a";
+			reg = < 0x30030000 0x10000 >;
+			interrupt-parent = <&xps_intc_0>;
+			interrupts = < 0 2 >;
+			qtec,apertures =<
+				0x80000000 0x20000000
+				0xa0000000 0x20000000
+				0xc0000000 0x20000000
+				0xe0000000 0x20000000
+				>;
+		};
+
+		hwicap_0: hwicap_0 {
+			#address-cells = <1>;
+			#size-cells = <1>;
+			compatible = "xlnx,axi-hwicap-2.03.a";
+			reg = < 0x39000000 0x10000 >;
+			interrupt-parent = <&xps_intc_0>;
+			interrupts = < 2 2 >;
+			xlnx,family = "spartan6";
+			hwicap ;
+		};
+	};
+};

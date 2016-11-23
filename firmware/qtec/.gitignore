@@ -1,0 +1,9 @@
+*.dtb
+*.bin
+*.kbpi
+.*.gen.o.cmd
+.*.tmp
+*.o
+*.S
+*.swp
+*.swo

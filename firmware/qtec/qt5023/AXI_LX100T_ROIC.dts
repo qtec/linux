@@ -1,0 +1,264 @@
+/dts-v1/;
+
+/include/ "qt5023.dtsi"
+
+&axi1 {
+		spi_sensor: spi_sensor {
+			#address-cells = <1>;
+			#size-cells = <1>;
+			compatible = "xlnx,xps-spi-2.00.b";
+			reg = < 0x300a0000 0x10000 >;
+			interrupt-parent = <&xps_intc_0>;
+			interrupts = < 4 2 >;
+			xlnx,fifo-exist = <0x1>;
+			xlnx,num-ss-bits = <33>;
+			xlnx,num-transfer-bits = <0x8>;
+			xlnx,sck-ratio = <0x20>;
+			cmosis:cmosis {
+				compatible = "qtec,q5_cmosis";
+				reg = < 0 0>;
+				spi-max-frequency = <3125000>;
+				spi-cs-high;
+				qtec,power_save = <0>;
+			} ;
+			ad_lwir:ad_lwir {
+				compatible = "ad,ad9259";
+				reg = < 1 1>;
+				spi-max-frequency = <3125000>;
+			} ;
+			dac_sensor:dac_sensor {
+				compatible = "ad,ad5628";
+				reg = < 2 2>;
+				spi-max-frequency = <3125000>;
+				spi-cpol;
+			} ;
+			dac_lwir:dac_lwir {
+				compatible = "ad,ad5628";
+				reg = < 3 3>;
+				spi-max-frequency = <3125000>;
+				spi-cpol;
+			} ;
+			flash_lwir:flash@0 {
+				#address-cells = <1>;
+				#size-cells = <1>;
+				fpga-flash ;
+				compatible = "m25p80";
+				reg = < 4 4>;
+				spi-max-frequency = <3125000>;
+				full@0{
+					reg = < 0x0 0x100000 >;
+					label = "Sensor Data";
+				};
+			};
+		} ;
+
+		/*pll_0: pll_0 {
+			#address-cells = <1>;
+			#size-cells = <1>;
+		    	compatible = "qtec,axi_pll-1.00.a";
+			reg = < 0x300b0000 0x1000 >;
+	    	};
+		cmosis_fg_0: cmosis_fg_0 {
+			#address-cells = <1>;
+			#size-cells = <1>;
+		       	compatible = "qtec,axi_cmosis_if-1.00.a";
+			reg = < 0x300c0000 0x10000 >;
+			qtec,pll = < &pll_0 >;
+			qtec,cmosis_device = < &cmosis >;
+			qtec,pixel_clk = < 30000000 >;
+			qtec,bus_clk =   < 85714285 >;
+			qtec,sync_word = < 0xb13 >;
+			qtec,bayer_chip = <1> ;
+			qtec,bit_mode = < 12 >;
+			qtec,sync_channels = < 4 >;
+			qtec,offset = <0xffffffc3> ; // -61
+			qtec,adc_gain = <50> ;
+			qtec,vramp = <109> ;
+
+	        };
+		white_0: white_0 {
+			#address-cells = <1>;
+			#size-cells = <1>;
+		    	compatible = "qtec,axi_white_balance-1.00.a";
+			reg = < 0x300e0000 0x1000 >;
+	    	};
+		xform_0: xform_0 {
+			#address-cells = <1>;
+			#size-cells = <1>;
+			compatible = "qtec,axi_fb_img_xform-1.03.a";
+			reg = < 0x32000000 0x10000 >;
+			qtec,dist_mem = <&distortion_mem_0>;
+			qtec,buffer_size_pixels=< 57344 >;
+			interrupt-parent = <&xps_intc_0>;
+			interrupts = < 7 2 >;
+		};
+		testgen_0: testgen_0{
+			#address-cells = <1>;
+			#size-cells = <1>;
+		     	compatible = "qtec,axi_fb_testgen-1.00.a";
+			reg = < 0x30070000 0x10000 >;
+			qtec,test_mem = <&testgen_mem_0>;
+			interrupt-parent = <&xps_intc_0>;
+			interrupts = < 6 2 >;
+		};
+		cdma_0: cdma_0{
+			#address-cells = <1>;
+			#size-cells = <1>;
+		     	compatible = "xlnx,axi_cdma-3.04.a";
+			reg = < 0x30020000 0x10000 >;
+			interrupt-parent = <&xps_intc_0>;
+			interrupts = < 3 2 >;
+
+		};
+		packer_0: packer_0{
+			#address-cells = <1>;
+			#size-cells = <1>;
+		     	compatible = "qtec,axi_matrix_packer-1.00.a";
+			reg = < 0x30050000 0x10000 >;
+			qtec,serial_number = "Invalid Head Serial Number";
+			qtec,bitstream_version = < 0 >;
+			qtec,head_i2c_address = < 0 >;
+			qtec,cdma = <&cdma_0>;
+			qtec,desc_mem= <&cdma_desc_mem_0>;
+			qtec,pcie_bridge= <&pcie_bridge_0>;
+			qtec,aperture-addr= < 0  2 >;
+			qtec,circular_buffer= <&video_mem_0>;
+			qtec,white_balance= <&white_0>;
+			qtec,sensor = <&cmosis_fg_0>;
+			qtec,pll = < &pll_0 >;
+			qtec,xform = <&xform_0>;
+			qtec,testgen = <&testgen_0>;
+			interrupt-parent = <&xps_intc_0>;
+			interrupts = < 5 2 >;
+		};*/
+
+		pll_1: pll_1 {
+			#address-cells = <1>;
+			#size-cells = <1>;
+		    	compatible = "qtec,axi_pll-1.00.a";
+			reg = < 0x340b0000 0x1000 >;
+	    	};
+		roic_fg_1: roic_fg_1 {
+			#address-cells = <1>;
+			#size-cells = <1>;
+		       	compatible = "qtec,axi-ingas-if-1.00.a";
+			reg = < 0x340c0000 0x10000 >;
+			qtec,pll = < &pll_1 >;
+			qtec,manual_sync=<1>;
+			qtec,base_clk=<600000000>;
+			qtec,max_clk=  <14000000>;
+			qtec,bus_clk=  <85714285>;
+			qtec,ingas_chip = <0>;
+			/*Subdevices*/
+			qtec,dac_lwir = <&dac_lwir>;
+			qtec,dac_sensor = <&dac_sensor>;
+			qtec,ad_lwir = <&ad_lwir>;
+			qtec,flash = <&flash_lwir>;
+	        };
+		white_1: white_1 {
+			#address-cells = <1>;
+			#size-cells = <1>;
+		    	compatible = "qtec,axi_white_balance-1.00.a";
+			reg = < 0x340e0000 0x1000 >;
+	    	};
+		cdma_1: cdma_1{
+			#address-cells = <1>;
+			#size-cells = <1>;
+		     	compatible = "xlnx,axi_cdma-3.04.a";
+			reg = < 0x34020000 0x10000 >;
+			interrupt-parent = <&xps_intc_0>;
+			interrupts = < 9 2 >;
+		};
+		packer_1: packer_1{
+			#address-cells = <1>;
+			#size-cells = <1>;
+		     	compatible = "qtec,axi_matrix_packer-1.00.a";
+			reg = < 0x34050000 0x10000 >;
+			qtec,serial_number = "Invalid Head Serial Number";
+			qtec,bitstream_version = < 0 >;
+			qtec,head_i2c_address = < 0 >;
+			qtec,cdma = <&cdma_1>;
+			qtec,desc_mem= <&cdma_desc_mem_1>;
+			qtec,pcie_bridge= <&pcie_bridge_0>;
+			qtec,aperture-addr= < 0  4 >;
+			qtec,circular_buffer= <&video_mem_1>;
+			qtec,white_balance= <&white_1>;
+			qtec,sensor = <&roic_fg_1>;
+			qtec,pll = < &pll_1 >;
+			interrupt-parent = <&xps_intc_0>;
+			interrupts = < 8 2 >;
+		};
+
+		/*Leds*/
+		leds {
+			compatible = "gpio-leds";
+			reg = < 0x30040000 010000 >;
+			red {
+				gpios = <&gpio_0 0 0>;
+				linux,default-trigger = "drop-qt5023_video0";
+			};
+			yellow {
+				gpios = <&gpio_0 1 0>;
+				linux,default-trigger = "packer-qt5023_video0";
+			};
+			green {
+				gpios = <&gpio_0 2 0>;
+				linux,default-trigger = "heartbeat";
+			};
+		};
+
+		gpio_0: gpio_0 {
+			#gpio-cells = <2>;
+			compatible = "xlnx,xps-gpio-1.00.a";
+			reg = < 0x30040000 010000 >;
+			xlnx,dout-default = < 0xffffffff >;
+			xlnx,tri-default =  < 0xfffffff8 >;
+			xlnx,gpio-width = < 5 >;
+		};
+
+		/*Memory resources*/
+		cdma_desc_mem_0: cdma_desc_mem_0 {
+			#address-cells = <1>;
+			#size-cells = <1>;
+		     	compatible = "qtec,memory-pool-1.00a";
+			reg = < 0x38000000 0x4000 >;
+			reg-axi = < 0x38000000 0x4000 >;
+		};
+		cdma_desc_mem_1: cdma_desc_mem_1 {
+			#address-cells = <1>;
+			#size-cells = <1>;
+		     	compatible = "qtec,memory-pool-1.00a";
+			reg = < 0x38010000 0x4000 >;
+			reg-axi = < 0x38010000 0x4000 >;
+		};
+		video_mem_0: video_mem_0 {
+			#address-cells = <1>;
+			#size-cells = <1>;
+		     	compatible = "qtec,memory-pool-1.00a";
+			reg = < 0x10000000 0x2000000 >;
+			reg-axi = < 0x10000000 0x2000000>;
+		};
+		video_mem_1: video_mem_1 {
+			#address-cells = <1>;
+			#size-cells = <1>;
+		     	compatible = "qtec,memory-pool-1.00a";
+			reg = < 0x12000000 0x2000000 >;
+			reg-axi = < 0x12000000 0x1200000>;
+		};
+		distortion_mem_0: distortion_mem_0 {
+			#address-cells = <1>;
+			#size-cells = <1>;
+		     	compatible = "qtec,memory-pool-1.00a";
+			reg = < 0x14000000 0x2000000 >;
+			reg-axi = < 0x14000000 0x2000000 >;
+		};
+		testgen_mem_0: testgen_mem_0 {
+			#address-cells = <1>;
+			#size-cells = <1>;
+		     	compatible = "qtec,memory-pool-1.00a";
+			reg = < 0x16000000 0x2000000 >;
+			reg-axi = < 0x16000000 0x2000000 >;
+		};
+
+
+	};

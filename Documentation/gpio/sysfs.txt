@@ -96,6 +96,9 @@ and have the following read/write attributes:
 		for "rising" and "falling" edges will follow this
 		setting.
 
+	"id" ... ID used for export/unxexport the GPIO. This value may
+		be used by named GPIOs, to find out their numerical id.
+
 GPIO controllers have paths like /sys/class/gpio/gpiochip42/ (for the
 controller implementing GPIOs starting at #42) and have the following
 read-only attributes:

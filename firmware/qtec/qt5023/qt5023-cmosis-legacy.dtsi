@@ -1,0 +1,18 @@
+/include/ "qt5023-cmosis.dtsi"
+
+&packer_0 {
+	qtec,xform = <&xform_0>;
+};
+
+&axi1 {
+	xform_0: xform_0 {
+		#address-cells = <1>;
+		#size-cells = <1>;
+		compatible = "qtec,axi_fb_img_xform-1.03.a";
+		reg = < 0x32000000 0x10000 >;
+		qtec,dist_mem = <&distortion_mem>;
+		qtec,buffer_size_pixels=< 94208 >; /*usually replaced by core*/
+		interrupt-parent = <&xps_intc_0>;
+		interrupts = < 7 2 >;
+	};
+};

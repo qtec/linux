@@ -27,6 +27,8 @@
 
 #include "cma3000_d0x.h"
 
+#define CMA3000_REV         0x10
+
 #define CMA3000_WHOAMI      0x00
 #define CMA3000_REVID       0x01
 #define CMA3000_CTRL        0x02
@@ -43,6 +45,7 @@
 #define CMA3000_RANGE2G    (1 << 7)
 #define CMA3000_RANGE8G    (0 << 7)
 #define CMA3000_BUSI2C     (0 << 4)
+#define CMA3000_BUSSPI     (1 << 4)
 #define CMA3000_MODEMASK   (7 << 1)
 #define CMA3000_GRANGEMASK (1 << 7)
 
@@ -62,6 +65,18 @@
  */
 #define BIT_TO_2G  18
 #define BIT_TO_8G  71
+
+static struct cma3000_platform_data cma3000_default_pdata = {
+	.mdthr = 0x8,
+	.mdfftmr = 0x33,
+	.ffthr = 0x8,
+	.mode = CMAMODE_MEAS400,
+	.g_range = CMARANGE_2G,
+	.fuzz_x = BIT_TO_2G,
+	.fuzz_y = BIT_TO_2G,
+	.fuzz_z = BIT_TO_2G,
+	.irqflags = 0,
+};
 
 struct cma3000_accl_data {
 	const struct cma3000_bus_ops *bus_ops;
@@ -217,8 +232,11 @@ static int cma3000_poweron(struct cma3000_accl_data *data)
 static int cma3000_poweroff(struct cma3000_accl_data *data)
 {
 	int ret;
+	u8 ctrl = CMAMODE_POFF;
 
-	ret = CMA3000_SET(data, CMA3000_CTRL, CMAMODE_POFF, "Mode setting");
+	ctrl |= data->bus_ops->ctrl_mod;
+
+	ret = CMA3000_SET(data, CMA3000_CTRL, ctrl, "Mode setting");
 	msleep(CMA3000_SETDELAY);
 
 	return ret;
@@ -290,12 +308,10 @@ struct cma3000_accl_data *cma3000_init(struct device *dev, int irq,
 	int rev;
 	int error;
 
-	if (!pdata) {
-		dev_err(dev, "platform data not found\n");
-		error = -EINVAL;
-		goto err_out;
+	if (pdata == NULL) {
+		dev_info(dev, "platform data not found, using default\n");
+		pdata = &cma3000_default_pdata;
 	}
-
 
 	/* if no IRQ return error */
 	if (irq == 0) {
@@ -357,7 +373,11 @@ struct cma3000_accl_data *cma3000_init(struct device *dev, int irq,
 		error = rev;
 		goto err_free_mem;
 	}
-
+	if (rev != CMA3000_REV) {
+		error = -EINVAL;
+		pr_err("CMA3000 Accelerometer: Unknown Revision %x\n", rev);
+		goto err_free_mem;
+	}
 	pr_info("CMA3000 Accelerometer: Revision %x\n", rev);
 
 	error = request_threaded_irq(irq, NULL, cma3000_thread_irq,
@@ -388,8 +408,8 @@ EXPORT_SYMBOL(cma3000_init);
 
 void cma3000_exit(struct cma3000_accl_data *data)
 {
-	free_irq(data->irq, data);
 	input_unregister_device(data->input_dev);
+	free_irq(data->irq, data);
 	kfree(data);
 }
 EXPORT_SYMBOL(cma3000_exit);

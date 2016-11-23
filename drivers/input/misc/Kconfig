@@ -715,8 +715,8 @@ config INPUT_CMA3000
 	  Say Y here if you want to use VTI CMA3000_D0x Accelerometer
 	  driver
 
-	  This driver currently only supports I2C interface to the
-	  controller. Also select the I2C method.
+	  This driver supports I2C and SPI interface to the
+	  controller. Also select the I2C method and/or the SPI method.
 
 	  If unsure, say N
 
@@ -732,6 +732,40 @@ config INPUT_CMA3000_I2C
 
 	  To compile this driver as a module, choose M here: the
 	  module will be called cma3000_d0x_i2c.
+
+config INPUT_CMA3000_SPI
+	tristate "Support SPI bus connection"
+	depends on INPUT_CMA3000 && SPI
+	help
+	  Say Y here if you want to use VTI CMA3000_D0x Accelerometer
+	  through SPI interface.
+
+	  To compile this driver as a module, choose M here: the
+	  module will be called cma3000_d0x_spi.
+
+config INPUT_CMR3000
+	tristate "VTI CMR3000 Tri-axis gyroscope"
+	help
+	  Say Y here if you want to use VTI CMR3000_D0x Gyroscope
+	  driver
+
+	  This driver currently only supports SPI interface to the
+	  controller. Also select the SPI method.
+
+	  If unsure, say N
+
+	  To compile this driver as a module, choose M here: the
+	  module will be called cmr3000_d0x.
+
+config INPUT_CMR3000_SPI
+	tristate "Support SPI bus connection"
+	depends on INPUT_CMR3000 && SPI
+	help
+	  Say Y here if you want to use VTI CMR3000_D0x Gyroscope
+	  through SPI interface.
+
+	  To compile this driver as a module, choose M here: the
+	  module will be called cmr3000_d0x_spi.
 
 config INPUT_XEN_KBDDEV_FRONTEND
 	tristate "Xen virtual keyboard and mouse support"

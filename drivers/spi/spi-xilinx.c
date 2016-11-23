@@ -29,6 +29,8 @@
 /* Register definitions as per "OPB Serial Peripheral Interface (SPI) (v1.00e)
  * Product Specification", DS464
  */
+#define CS_ALL XILINX_SPI_MAX_CS
+
 #define XSPI_CR_OFFSET		0x60	/* Control Register */
 
 #define XSPI_CR_LOOP		0x01
@@ -217,6 +219,9 @@ static void xilinx_spi_chipselect(struct spi_device *spi, int is_on)
 	cs = xspi->cs_inactive;
 	cs ^= BIT(spi->chip_select);
 
+	if (spi->chip_select == CS_ALL)
+		cs = ~xspi->cs_inactive;
+
 	/* Activate the chip select */
 	xspi->write_fn(cs, xspi->regs + XSPI_SSR_OFFSET);
 }
@@ -393,6 +398,8 @@ static int xilinx_spi_probe(struct platform_device *pdev)
 	} else {
 		of_property_read_u32(pdev->dev.of_node, "xlnx,num-ss-bits",
 					  &num_cs);
+		of_property_read_u32(pdev->dev.of_node, "num-cs",
+					  &num_cs);
 	}
 
 	if (!num_cs) {
@@ -401,7 +408,7 @@ static int xilinx_spi_probe(struct platform_device *pdev)
 		return -EINVAL;
 	}
 
-	if (num_cs > XILINX_SPI_MAX_CS) {
+	if (num_cs > (XILINX_SPI_MAX_CS +1) ) { //+1 for CS_ALL
 		dev_err(&pdev->dev, "Invalid number of spi slaves\n");
 		return -EINVAL;
 	}

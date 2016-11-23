@@ -672,6 +672,7 @@ extern void i2c_clients_command(struct i2c_adapter *adap,
 				unsigned int cmd, void *arg);
 
 extern struct i2c_adapter *i2c_get_adapter(int nr);
+extern int i2c_get_adapter_id_of_node(struct device_node *of_node);
 extern void i2c_put_adapter(struct i2c_adapter *adap);
 
 void i2c_parse_fw_timings(struct device *dev, struct i2c_timings *t, bool use_defaults);

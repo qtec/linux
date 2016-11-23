@@ -1,0 +1,17 @@
+/dts-v1/;
+
+/include/ "qt5023-cmosis-legacy.dtsi"
+
+&axi1 {
+	encoder_0: encoder_0 {
+		#address-cells = <1>;
+		#size-cells = <1>;
+		compatible = "qtec,axi_encoder-1.00.a";
+		reg = < 0x300f0000 0x10000 >;
+	};
+};
+
+&packer_0 {
+	qtec,encoder = <&encoder_0>;
+};
+

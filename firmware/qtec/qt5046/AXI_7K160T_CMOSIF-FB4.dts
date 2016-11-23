@@ -1,0 +1,163 @@
+/dts-v1/;
+/include/ "qt5046.dtsi"
+
+/*Leds*/
+&red_led {
+	linux,default-trigger = "drop-qt5023_video0";
+};
+&yellow_led {
+	linux,default-trigger = "packer-qt5023_video0";
+};
+&green_led {
+	linux,default-trigger = "heartbeat";
+};
+
+&axi1 {
+	dma_packer: dma_packer{
+		#address-cells = <1>;
+		#size-cells = <1>;
+		compatible = "xlnx,axi_dma-6.02.a";
+		reg = < 0x00090030 0x20 >;
+		interrupt-parent = <&xps_intc_0>;
+		interrupts = < 6 2 >;
+	};
+
+	dma_xform: dma_xform{
+		#address-cells = <1>;
+		#size-cells = <1>;
+		compatible = "xlnx,axi_dma-6.02.a";
+		reg = < 0x00090000 0x20 >;
+		interrupt-parent = <&xps_intc_0>;
+		interrupts = < 9 2 >;
+	};
+
+	uart_0: uart_0{
+		#address-cells = <1>;
+		#size-cells = <1>;
+		compatible = "xlnx,xps-uartlite-1.00.a";
+		reg = < 0x00070000 0x10000 >;
+		interrupt-parent = <&xps_intc_0>;
+		interrupts = < 7 2 >;
+	};
+
+	pll_0: pll_0 {
+		#address-cells = <1>;
+		#size-cells = <1>;
+		compatible = "qtec,axi_pll-1.00.a";
+		reg = < 0x000b0000 0x1000 >;
+		qtec,pll_type = "PLLE2_ADV";
+	};
+
+	cmosis_fg_0: cmosis_fg_0 {
+		#address-cells = <1>;
+		#size-cells = <1>;
+		compatible = "qtec,axi_cmosis_if-1.00.a";
+		reg = < 0x000c0000 0x10000 >;
+		qtec,pll = < &pll_0 >;
+		qtec,pixel_clk = <  47500000 >;
+		qtec,bus_clk =   < 125000000 >;
+		qtec,sync_word = < 0xb13 >;
+		qtec,bayer_chip = <1> ;
+		qtec,offset = <0xffffffc3> ; /* -61*/
+		qtec,adc_gain = <50> ;
+		qtec,vramp = <109> ;
+		qtec,bit_mode = < 10 >;
+		qtec,sync_channels = < 16 >;
+		interrupt-parent = <&xps_intc_0>;
+		interrupts = < 4 2 >;
+        };
+
+	white_0: white_0 {
+		#address-cells = <1>;
+		#size-cells = <1>;
+		compatible = "qtec,axi_white_balance-1.00.a";
+		reg = < 0x000e0000 0x1000 >;
+	};
+
+	cdma_0: cdma_0{
+		#address-cells = <1>;
+		#size-cells = <1>;
+		compatible = "xlnx,axi_cdma-3.04.a";
+		reg = < 0x00050000 0x10000 >;
+		interrupt-parent = <&xps_intc_0>;
+		interrupts = < 3 2 >;
+	};
+
+	xform_0: xform_0 {
+		#address-cells = <1>;
+		#size-cells = <1>;
+		compatible = "qtec,axi_fb_img_xform-4.00.a";
+		reg = < 0x000f0000 0x10000 >;
+		qtec,dist_mem = <&distortion_mem>;
+		interrupt-parent = <&xps_intc_0>;
+		interrupts = < 8 2 >;
+		qtec,dma = <&dma_xform>;
+		qtec,dma_desc_mem= <&dma_desc_mem_xform>;
+	};
+
+	packer_0: packer_0{
+		#address-cells = <1>;
+		#size-cells = <1>;
+		compatible = "qtec,axi_matrix_packer-1.00.a";
+		reg = < 0x00060000 0x10000 >;
+		qtec,serial_number = "Invalid Head Serial Number";
+		qtec,bitstream_version = < 0 >;
+		qtec,head_i2c_address = < 0 >;
+		qtec,head_i2c_bus = < &iic_0 >;
+		qtec,cdma = <&cdma_0>;
+		qtec,desc_mem= <&cdma_desc_mem>;
+		qtec,pcie_bridge= <&pcie_bridge_0>;
+		qtec,aperture-addr= < 0  4 >;
+		qtec,circular_buffer= <&video_mem>;
+		qtec,white_balance= <&white_0>;
+		qtec,xform = <&xform_0>;
+		qtec,sensor = <&cmosis_fg_0>;
+		qtec,pll = < &pll_0 >;
+		interrupt-parent = <&xps_intc_0>;
+		interrupts = < 5 2 >;
+		qtec,dma = <&dma_packer>;
+		qtec,dma_desc_mem= <&dma_desc_mem_packer>;
+	};
+
+	/* Memory resources*/
+	cdma_desc_mem: cdma_desc_mem {
+		#address-cells = <1>;
+		#size-cells = <1>;
+		compatible = "qtec,memory-pool-1.00a";
+		reg = < 0x04000000 0x4000 >;
+		reg-axi = < 0x04000000 0x4000 >;
+	};
+
+	video_mem: video_mem {
+		#address-cells = <1>;
+		#size-cells = <1>;
+		compatible = "qtec,memory-pool-1.00a";
+		reg = < 0x40000000 0xF000000 >;
+		reg-axi = < 0x40000000 0xF000000 >; //Duplicated
+	};
+
+	distortion_mem: distortion_mem {
+		#address-cells = <1>;
+		#size-cells = <1>;
+		compatible = "qtec,memory-pool-1.00a";
+		reg = < 0x4F000000 0x1000000 >;
+		reg-axi = < 0x4F000000 0x1000000 >; //Duplicated
+	};
+
+	dma_desc_mem_packer: dma_desc_mem_packer {
+		#address-cells = <1>;
+		#size-cells = <1>;
+		compatible = "qtec,memory-pool-1.00a";
+		reg = < 0x04100000 0x4000 >;
+		reg-axi = < 0x04100000 0x4000 >;
+	};
+
+	dma_desc_mem_xform: dma_desc_mem_xform {
+		#address-cells = <1>;
+		#size-cells = <1>;
+		compatible = "qtec,memory-pool-1.00a";
+		reg = < 0x04104000 0x4000 >;
+		reg-axi = < 0x04104000 0x4000 >;
+	};
+
+};

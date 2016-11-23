@@ -1151,6 +1151,7 @@ static void autoconfig_16550a(struct uart_8250_port *up)
 		up->port.type = PORT_U6_16550A;
 		up->capabilities |= UART_CAP_AFE;
 	}
+
 }
 
 /*

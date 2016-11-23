@@ -1,0 +1,114 @@
+/ {
+	#address-cells = <2>;
+	#size-cells = <1>;
+
+	axi1: axi1 {
+		#address-cells = <1>;
+		#size-cells = <1>;
+		compatible = "main-bus";
+		ranges =  <0x00000000 0 0xdead 0x10000000
+			0x40000000 0 0xbeef 0x10000000>; /*ranges 2&6 filled by driver*/
+
+		axi_pcie_clk: axi_pcie_clk {
+			compatible = "qtec,fixed-clock";
+			#clock-cells = <0x0>;
+			clock-frequency = <125000000>;
+		};
+
+		cfi_flash_0: cfi_flash {
+			#address-cells = <1>;
+			#size-cells = <1>;
+			compatible = "cfi-flash";
+			bank-width = <2>;
+			reg = < 0x08000000 0x08000000 >;
+			fpga-flash ;
+			full@0 {
+				reg = < 0x00000000 0x08000000 >;
+				label = "Full FLASH";
+			};
+			partition@0 {
+				reg = < 0x0 0x680000 >;
+				label = "Golden Bitstream";
+			};
+			partition@680000 {
+				reg = < 0x680000 0x680000 >;
+				label = "User Bitstream";
+			};
+			partition@d00000 {
+				reg = < 0xd00000 0x7300000 >;
+				label = "Production Data";
+			};
+		} ;
+
+		xps_intc_0: interrupt-controller {
+			#address-cells = <1>;
+			#size-cells = <1>;
+			#interrupt-cells = <0x2>;
+			compatible = "xlnx,axi-intc-1.03.a";
+			interrupt-controller ;
+			reg = < 0x00000000 0x10000 >;
+			xlnx,num-intr-inputs = <0x20>;
+		} ;
+
+		pcie_bridge_0: pcie_bridge {
+			#address-cells = <1>;
+			#size-cells = <1>;
+			compatible = "xlnx,axi-pcie-1.00.a";
+			reg = < 0x00010000 0x10000 >;
+			interrupt-parent = <&xps_intc_0>;
+			interrupts = < 0 2 >;
+			qtec,apertures =<
+				0x80000000 0x20000000
+				0xa0000000 0x20000000
+				0xc0000000 0x20000000
+				0xe0000000 0x20000000
+				>;
+		};
+
+		hwicap_0: hwicap {
+			#address-cells = <1>;
+			#size-cells = <1>;
+			compatible = "xlnx,axi-hwicap-2.03.a";
+			reg = < 0x00020000 0x10000 >;
+			interrupt-parent = <&xps_intc_0>;
+			interrupts = < 1 2 >;
+			hwicap ;
+		};
+
+		iic_0: iic {
+			#address-cells = <1>;
+			#size-cells = <1>;
+		   	compatible = "xlnx,xps-iic-2.00.a";
+			reg = < 0x00030000 0x10000 >;
+		   	interrupt-parent = <&xps_intc_0>;
+		   	interrupts = < 2 2 >;
+			clocks = <&axi_pcie_clk>;
+			i2c-eeprom-head;
+	   	} ;
+
+		leds_0: leds_0 {
+		       reg = < 0x00040000 010000 >;
+		       compatible = "gpio-leds";
+		       red_led: red_led {
+			       gpios = <&gpio_0 0 0>;
+		       };
+		       yellow_led: yellow_led {
+			       gpios = <&gpio_0 1 0>;
+		       };
+		       green_led: green_led {
+			       gpios = <&gpio_0 2 0>;
+		       };
+		};
+
+		gpio_0: gpio_0 {
+			#gpio-cells = <2>;
+			compatible = "xlnx,xps-gpio-1.00.a";
+			reg = < 0x00040000 010000 >;
+			xlnx,dout-default = < 0xffffffff >;
+			xlnx,tri-default =  < 0xfffffff8 >;
+			xlnx,gpio-width = < 3 >;
+		};
+
+
+	};
+};

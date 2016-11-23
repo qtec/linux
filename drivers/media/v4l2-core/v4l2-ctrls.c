@@ -1360,6 +1360,9 @@ static void std_log(const struct v4l2_ctrl *ctrl)
 	case V4L2_CTRL_TYPE_U32:
 		pr_cont("%u", (unsigned)*ptr.p_u32);
 		break;
+	case V4L2_CTRL_TYPE_POINT:
+		pr_cont("(%u,%u)", ptr.p_point->x, ptr.p_point->y);
+		break;
 	default:
 		pr_cont("unknown type %d", ctrl->type);
 		break;
@@ -1451,6 +1454,9 @@ static int std_validate(const struct v4l2_ctrl *ctrl, u32 idx,
 			return -ERANGE;
 		if ((len - (u32)ctrl->minimum) % (u32)ctrl->step)
 			return -ERANGE;
+		return 0;
+
+	case V4L2_CTRL_TYPE_POINT:
 		return 0;
 
 	default:
@@ -1971,6 +1977,9 @@ static struct v4l2_ctrl *v4l2_ctrl_new(struct v4l2_ctrl_handler *hdl,
 		break;
 	case V4L2_CTRL_TYPE_U32:
 		elem_size = sizeof(u32);
+		break;
+	case V4L2_CTRL_TYPE_POINT:
+		elem_size = sizeof(struct v4l2_point);
 		break;
 	default:
 		if (type < V4L2_CTRL_COMPOUND_TYPES)

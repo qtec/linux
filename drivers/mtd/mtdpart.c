@@ -873,3 +873,11 @@ uint64_t mtd_get_device_size(const struct mtd_info *mtd)
 	return mtd_to_part(mtd)->master->size;
 }
 EXPORT_SYMBOL_GPL(mtd_get_device_size);
+
+uint64_t mtd_get_device_offset(const struct mtd_info *mtd){
+	if (!mtd_is_partition(mtd))
+		return 0;
+
+	return mtd_to_part(mtd)->offset;
+}
+EXPORT_SYMBOL_GPL(mtd_get_device_offset);
